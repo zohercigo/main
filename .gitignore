@@ -1,13 +1,254 @@
-# Compiled Object files
-*.slo
-*.lo
-*.o
+#include <iostream>
+#include "polja.h"
+//#include "pokazivaci.h"
+#include <windows.h>//system("pause");
+#include <ctime>
 
-# Compiled Dynamic libraries
-*.so
-*.dylib
 
-# Compiled Static libraries
-*.lai
-*.la
-*.a
+using namespace std;
+
+tsalter*novi_pomocni_red=new tsalter;
+tcovjek*pom=new tcovjek;
+int N;
+
+
+struct pomocna_struktura{
+  int ai_vrijemeulaska;
+	int bi_vrijemezadrzavanja;
+	int ci_prioritet;
+	int di_transakcija;
+};
+
+pomocna_struktura*elementi;
+
+void f_1(tsalter*red){
+	cout<<"Koliko zelite generirati podataka o osobama: ";
+	cin>>N;
+	elementi=new pomocna_struktura[N];
+	srand((time(0)));
+	rand();
+	for(int i=0;i<N;i++){
+		elementi[i].ai_vrijemeulaska=rand()%401+100;
+		elementi[i].bi_vrijemezadrzavanja=rand()%401+100;
+		do{
+			elementi[i].ci_prioritet=rand()%6+1;
+			elementi[i].di_transakcija=rand()%4+1;
+		}while(elementi[i].ci_prioritet==6&&elementi[i].di_transakcija==4);
+	}
+}
+
+void ispis_podataka(tcovjek*pom){
+	cout<<"\n...........................\n";
+	cout<<"Podaci o osobi\n";
+	cout<<"...........................\n";
+	cout<<"Ime= "<<pom->ime<<endl;
+	cout<<"Prezime= "<<pom->prezime<<endl;
+	cout<<"Godina= "<<pom->godina<<endl;
+	cout<<"Stanje na tekucem racunu= "<<pom->stanje_tekuci<<endl;
+	cout<<"Stanje na deviznom racunu= "<<pom->stanje_devizni<<endl;
+	cout<<"Valuta deviznog racuna= "<<pom->valuta<<endl;
+	cout<<"Vrijeme ulaska= "<<pom->ai_vrijemeulaska<<endl;
+	cout<<"Trajanje transakcije= "<<pom->bi_vrijemezadrzavanja<<endl;
+	cout<<"Prioritet= "<<pom->ci_prioritet<<endl;
+	cout<<"Vrsta transakcije= "<<pom->di_transakcija<<endl<<endl;
+}
+
+void f_2(tsalter*red){
+	for(int i=0;i<N;i++){
+		tcovjek*pomak=new tcovjek;
+		cout<<"Ime= ";
+		cin>>pomak->ime;
+		cout<<"Prezime= ";
+		cin>>pomak->prezime;
+		cout<<"Godina= ";
+		cin>>pomak->godina;
+		cout<<"Stanje na tekucem racunu= ";
+		cin>>pomak->stanje_tekuci;
+		cout<<"Stanje na deviznom racunu= ";
+		cin>>pomak->stanje_devizni;
+		cout<<"Valuta deviznog racuna= ";
+		cin>>pomak->valuta;
+		pomak->ai_vrijemeulaska=elementi[i].ai_vrijemeulaska;
+		pomak->bi_vrijemezadrzavanja=elementi[i].bi_vrijemezadrzavanja;
+		pomak->ci_prioritet=elementi[i].ci_prioritet;
+		pomak->di_transakcija=elementi[i].di_transakcija;
+		enqueue(red,pomak);	
+	}
+	tcovjek pomocni_red[N];
+	pom=new tcovjek;
+	for(int i=0;i<N;i++){
+		pom=front(red);
+		memcpy(&pomocni_red[i],pom,sizeof(tcovjek));
+		dequeue(red);
+	}
+
+	for(int i = 1; i < N; i++) {
+        int j = i - 1;
+        int pom = pomocni_red[i].ci_prioritet;
+        tcovjek pom2 = pomocni_red[i];
+        while(j >= 0 && pomocni_red[j].ci_prioritet > pom) {
+            pomocni_red[j+1] = pomocni_red[j--];
+            pomocni_red[j+1] = pom2;
+        }//while
+    }//for
+	for(int i=0;i<N;i++){
+		tcovjek*novi=new tcovjek;
+		if(pomocni_red[i].stanje_devizni>10000)ispis_podataka(&pomocni_red[i]);
+		else{
+			memcpy(novi,&pomocni_red[i],sizeof(tcovjek));
+			enqueue(red,novi);
+		}
+	}
+}
+
+void f_3(tsalter*red){
+	tcovjek st[N];
+	tcovjek br[N];
+	int brojac_st=0;
+	int brojac_br=0;
+	pom=new tcovjek;
+	tcovjek*novi=new tcovjek;
+	for(int i=0;i<N;i++){
+		novi=front(red);
+		dequeue(red);
+		if(novi->di_transakcija==3){
+			memcpy(&br[brojac_br],novi,sizeof(tcovjek));
+			brojac_br++;
+		}
+		else {
+			memcpy(&st[brojac_st],novi,sizeof(tcovjek));
+			brojac_st++;
+		}
+	}
+	for(int i=0;i<brojac_st;i++){
+		novi=new tcovjek;
+		memcpy(novi,&st[i],sizeof(tcovjek));
+		//ispis_podataka(novi);
+		enqueue(red,novi);
+	}
+	cout<<"\n...........................\n";
+	cout<<"Stare transakcije\n";
+	cout<<"...........................\n";
+	for(int i=0;i<brojac_st;i++){
+		pom=new tcovjek;
+		memcpy(pom,&st[i],sizeof(tcovjek));
+		ispis_podataka(pom);
+	}
+	cout<<"\n...........................\n";
+	cout<<"Brze transakcije\n";
+	cout<<"...........................\n";
+	for(int i=0;i<brojac_br;i++){
+		memcpy(pom,&br[i],sizeof(tcovjek));
+		ispis_podataka(pom);
+	}
+}
+
+void f_4(tsalter*red){
+	tcovjek*novi=new tcovjek;
+	tcovjek pomocni_red[N];
+	int brojac_stare_osobe=0;
+	for(int i=0;i<N;i++){
+		    novi=front(red);
+		    dequeue(red);
+			memcpy(&pomocni_red[i],novi,sizeof(tcovjek));
+		}
+	init(red);
+	for(int i=0;i<N;i++){
+		memcpy(novi,&pomocni_red[i],sizeof(tcovjek));
+		if(novi->ci_prioritet==4&&(2012-novi->godina)<30&&novi->di_transakcija==1&&novi->stanje_tekuci<100){
+			cout<<"OVU OSOBU NE DODAJEM NAZAD U RED\n====================\n";
+			ispis_podataka(novi);
+		}
+		else if(novi->ci_prioritet==1&&novi->di_transakcija==2&&novi->stanje_tekuci>5000){
+			cout<<"OVU OSOBU NE DODAJEM NAZAD U RED\n====================\n";
+			ispis_podataka(novi);
+		}
+		else {
+			brojac_stare_osobe++;
+			enqueue(red,novi);
+		}
+	}
+	tcovjek stari_red[brojac_stare_osobe];
+	cout<<"STARI RED\n";
+	for(int i=0;i<brojac_stare_osobe;i++){
+		//	memcpy(&pomocni_red[i],novi,sizeof(tcovjek));
+			memcpy(novi,&pomocni_red[i],sizeof(tcovjek));
+			ispis_podataka(novi);
+		}
+}
+
+void f_5(int sedamdeset,int trenutna_pozicija,tsalter*red){
+	if(isempty(red)==true)return;
+	tcovjek*p=new tcovjek;
+	if(trenutna_pozicija<sedamdeset){
+		p=front(red);
+		dequeue(red);
+		trenutna_pozicija++;
+		f_5(sedamdeset,trenutna_pozicija,red);//
+	}
+	else {
+		while(isempty(red)==false){
+			system("pause");
+			tcovjek*d=new tcovjek;
+			d=front(red);
+			dequeue(red);
+			ispis_podataka(d);
+			trenutna_pozicija++;
+			//system("pause");
+			enqueue(novi_pomocni_red,d);
+		}
+		return;
+	}
+	enqueue(red,p);
+}
+
+void f_5_2(tsalter*red){
+	if(isempty(red)==true)return;
+	tcovjek*p=new tcovjek;
+	p=front(red);
+	dequeue(red);
+	f_5_2(red);
+	enqueue(red,p);
+	ispis_podataka(p);
+}
+int main(){
+	tsalter*red=new tsalter;
+	init(red);
+	init(novi_pomocni_red);
+	int iz;
+	do{
+		cout<<"1. Generiranje podataka\n";
+		cout<<"2. Upis podataka\n";
+		cout<<"3. Brzi red\n";
+		cout<<"4. Brisanje klijenata\n";
+		cout<<"5. Novi salter\n";
+		cin>>iz;
+		system("cls");
+		switch(iz){
+			case 1:
+				f_1(red);
+				break;
+			case 2:
+				f_2(red);
+				break;
+			case 3:
+				f_3(red);
+				break;
+			case 4:
+				f_4(red);
+				break;
+			case 5:
+				int sedamdeset=N*0.7;
+				cout<<"Sedamdeset= "<<sedamdeset<<endl;
+				cout<<"Ispisujem pomocni red\n";
+				f_5(sedamdeset,0,red);
+				cout<<"ISPISUJEM GLAVNI RED\n";
+				f_5_2(red);
+//				cout<<"ISPISUJEM POMOCNI RED\n";
+//				f_5_2(novi_pomocni_red);
+				break;
+		}
+	}while(iz!=10);
+	system("pause");
+	return 0;
+}
